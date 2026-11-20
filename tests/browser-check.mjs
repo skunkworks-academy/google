@@ -33,10 +33,15 @@ try {
         return route.fulfill({ status: 404, body: '' });
       });
       const url = site === 'subdomain' ? 'https://google.skunkworksacademy.com/' : 'https://www.skunkworksacademy.com/google/';
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-      await page.locator('.swa-global-nav').waitFor({ state: 'visible', timeout: 45000 });
-      await page.locator('.swa-global-footer').waitFor({ state: 'visible', timeout: 45000 });
-      await page.waitForFunction(expected => document.documentElement.getAttribute('data-theme') === expected, theme);
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        await page.locator('.swa-global-nav').waitFor({ state: 'visible', timeout: 45000 });
+        await page.locator('.swa-global-footer').waitFor({ state: 'visible', timeout: 45000 });
+        await page.waitForFunction(expected => document.documentElement.getAttribute('data-theme') === expected, theme);
+      } catch (error) {
+        await page.screenshot({ path: `artifacts/${site}-${theme}-${width}-readiness-failure.png`, fullPage: true }).catch(() => {});
+        throw error;
+      }
       await page.screenshot({ path: `artifacts/${site}-${theme}-${width}.png`, fullPage: true });
       assert.equal(await page.locator('.swa-global-nav').count(), 1, 'one Academy header');
       assert.equal(await page.locator('.swa-global-footer').count(), 1, 'one Academy footer');
